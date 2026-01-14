@@ -1,72 +1,605 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-  <title>大亨的誕生</title>
-  <style>
-    /* CSS樣式 */
-    #game-board { display: grid; grid-template-columns: repeat(10, 1fr); }
-    .cell { border: 1px solid black; height: 50px; }
-    /* ... */
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI 身體質量指數計算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 50px 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .unit {
+            position: absolute;
+            right: 15px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .gender-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .gender-option {
+            flex: 1;
+            position: relative;
+        }
+
+        .gender-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .gender-label {
+            display: block;
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .gender-option input[type="radio"]:checked + .gender-label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .gender-label:hover {
+            border-color: #667eea;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .calculate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .calculate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .bmi-value {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .bmi-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #333;
+            display: block;
+        }
+
+        .bmi-category {
+            font-size: 1.5em;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .bmi-gauge {
+            position: relative;
+            height: 30px;
+            background: linear-gradient(to right, 
+                #3498db 0%, 
+                #2ecc71 25%, 
+                #f39c12 50%, 
+                #e74c3c 75%);
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .bmi-indicator {
+            position: absolute;
+            top: -10px;
+            width: 4px;
+            height: 50px;
+            background: #333;
+            border-radius: 2px;
+            transition: left 0.5s ease-out;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .bmi-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .health-advice {
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .health-advice h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .health-advice p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .underweight {
+            color: #3498db;
+        }
+
+        .normal {
+            color: #2ecc71;
+        }
+
+        .overweight {
+            color: #f39c12;
+        }
+
+        .obese {
+            color: #e74c3c;
+        }
+
+        .history {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .history.show {
+            display: block;
+        }
+
+        .history h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .history-item {
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-date {
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        .clear-history {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .clear-history:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .bmi-number {
+                font-size: 2.5em;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>大亨的誕生</h1>
-  <div id="game-board">
-    <!-- 棋盤格子 -->
-    <div class="cell"></div>
-    <div class="cell"></div>
-    <!-- ... -->
-  </div>
-  <div id="player-info">
-    <!-- 玩家資訊 -->
-    <p>玩家1: $1000</p>
-    <p>玩家2: $1000</p>
-    <!-- ... -->
-  </div>
-  <div id="game-controls">
-    <!-- 遊戲控制按鈕 -->
-    <button id="roll-dice">擲骰子</button>
-    <button id="end-turn">結束回合</button>
-    <!-- ... -->
-  </div>
+    <div class="container">
+        <h1>BMI 計算器</h1>
+        <p class="subtitle">計算你的身體質量指數</p>
+        
+        <div class="gender-selector">
+            <div class="gender-option">
+                <input type="radio" id="male" name="gender" value="male" checked>
+                <label for="male" class="gender-label">👨 男性</label>
+            </div>
+            <div class="gender-option">
+                <input type="radio" id="female" name="gender" value="female">
+                <label for="female" class="gender-label">👩 女性</label>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="height">身高</label>
+            <div class="input-wrapper">
+                <input type="number" id="height" placeholder="請輸入身高" min="50" max="250" step="0.1">
+                <span class="unit">公分</span>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="weight">體重</label>
+            <div class="input-wrapper">
+                <input type="number" id="weight" placeholder="請輸入體重" min="10" max="300" step="0.1">
+                <span class="unit">公斤</span>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="age">年齡</label>
+            <div class="input-wrapper">
+                <input type="number" id="age" placeholder="請輸入年齡" min="1" max="120">
+                <span class="unit">歲</span>
+            </div>
+        </div>
+        
+        <button class="calculate-btn" onclick="calculateBMI()">計算 BMI</button>
+        
+        <div class="result-container" id="resultContainer">
+            <div class="bmi-value">
+                <span class="bmi-number" id="bmiValue">0</span>
+                <div class="bmi-category" id="bmiCategory"></div>
+            </div>
+            
+            <div class="bmi-gauge">
+                <div class="bmi-indicator" id="bmiIndicator"></div>
+            </div>
+            
+            <div class="bmi-scale">
+                <span>過輕</span>
+                <span>正常</span>
+                <span>過重</span>
+                <span>肥胖</span>
+            </div>
+            
+            <div class="health-advice" id="healthAdvice">
+                <h3>健康建議</h3>
+                <p id="adviceText"></p>
+            </div>
+        </div>
+        
+        <div class="history" id="history">
+            <h3>📊 歷史記錄</h3>
+            <div id="historyList"></div>
+            <button class="clear-history" onclick="clearHistory()">清除記錄</button>
+        </div>
+    </div>
 
-  <script>
-    // JavaScript遊戲邏輯
-    const gameBoard = document.getElementById('game-board');
-    const playerInfo = document.getElementById('player-info');
-    const rollDiceBtn = document.getElementById('roll-dice');
-    const endTurnBtn = document.getElementById('end-turn');
-    
-    // 初始化遊戲狀態
-    let gameState = {
-      players: [
-        { id: 1, name: '玩家1', money: 1000, position: 0 },
-        { id: 2, name: '玩家2', money: 1000, position: 0 },
-        // ...
-      ],
-      currentPlayer: 1,
-      // ...
-    };
-
-    // 擲骰子事件處理
-    rollDiceBtn.addEventListener('click', () => {
-      const steps = Math.floor(Math.random() * 6) + 1;
-      // 更新當前玩家位置
-      // ...
-      updateGameState();
-    });
-
-    // 結束回合事件處理
-    endTurnBtn.addEventListener('click', () => {
-      gameState.currentPlayer = (gameState.currentPlayer % gameState.players.length) + 1;
-      updateGameState();
-    });
-    
-    // 更新遊戲狀態顯示
-    function updateGameState() {
-      // 更新玩家資訊顯示 
-      // ...
-    }
-  </script>
+    <script>
+        // 載入歷史記錄
+        let bmiHistory = JSON.parse(localStorage.getItem('bmiHistory')) || [];
+        
+        // 頁面載入時顯示歷史記錄
+        window.onload = function() {
+            updateHistoryDisplay();
+            
+            // 為輸入框添加即時驗證
+            document.getElementById('height').addEventListener('input', validateInput);
+            document.getElementById('weight').addEventListener('input', validateInput);
+            document.getElementById('age').addEventListener('input', validateInput);
+        };
+        
+        function validateInput(e) {
+            const value = parseFloat(e.target.value);
+            const id = e.target.id;
+            
+            let min, max;
+            switch(id) {
+                case 'height':
+                    min = 50; max = 250;
+                    break;
+                case 'weight':
+                    min = 10; max = 300;
+                    break;
+                case 'age':
+                    min = 1; max = 120;
+                    break;
+            }
+            
+            if (value < min || value > max) {
+                e.target.style.borderColor = '#e74c3c';
+            } else {
+                e.target.style.borderColor = '#e0e0e0';
+            }
+        }
+        
+        function calculateBMI() {
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const age = parseInt(document.getElementById('age').value);
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            
+            // 驗證輸入
+            if (!height || !weight || !age) {
+                alert('請填寫所有欄位！');
+                return;
+            }
+            
+            if (height < 50 || height > 250) {
+                alert('請輸入合理的身高（50-250公分）');
+                return;
+            }
+            
+            if (weight < 10 || weight > 300) {
+                alert('請輸入合理的體重（10-300公斤）');
+                return;
+            }
+            
+            if (age < 1 || age > 120) {
+                alert('請輸入合理的年齡（1-120歲）');
+                return;
+            }
+            
+            // 計算BMI
+            const heightInMeters = height / 100;
+            const bmi = weight / (heightInMeters * heightInMeters);
+            const bmiRounded = Math.round(bmi * 10) / 10;
+            
+            // 顯示結果
+            document.getElementById('bmiValue').textContent = bmiRounded;
+            document.getElementById('resultContainer').classList.add('show');
+            
+            // 判斷BMI類別
+            let category, categoryClass, advice, indicatorPosition;
+            
+            if (bmi < 18.5) {
+                category = '體重過輕';
+                categoryClass = 'underweight';
+                advice = '您的BMI顯示體重過輕。建議：\n• 增加營養攝取，特別是蛋白質和健康脂肪\n• 進行適度的肌力訓練來增加肌肉量\n• 定期進食，避免跳餐\n• 選擇營養密度高的食物\n• 如有需要，請諮詢營養師制定增重計劃';
+                indicatorPosition = (bmi / 18.5) * 25;
+            } else if (bmi < 24) {
+                category = '正常範圍';
+                categoryClass = 'normal';
+                advice = '恭喜！您的BMI在正常範圍內。建議：\n• 保持均衡飲食，多吃蔬果和全穀物\n• 每週至少150分鐘中等強度運動\n• 保持良好的睡眠習慣\n• 定期進行健康檢查\n• 持續維持健康的生活方式';
+                indicatorPosition = 25 + ((bmi - 18.5) / 5.5) * 25;
+            } else if (bmi < 27) {
+                category = '體重過重';
+                categoryClass = 'overweight';
+                advice = '您的BMI顯示體重過重。建議：\n• 控制每日熱量攝取\n• 增加有氧運動，如快走、游泳或騎自行車\n• 減少高糖、高脂肪食物的攝取\n• 增加蔬菜和水果的攝取量\n• 考慮尋求專業營養師的協助';
+                indicatorPosition = 50 + ((bmi - 24) / 3) * 25;
+            } else {
+                category = '肥胖';
+                categoryClass = 'obese';
+                advice = '您的BMI顯示肥胖。強烈建議：\n• 諮詢醫生或營養師制定減重計劃\n• 逐步增加日常活動量\n• 採用地中海飲食或其他健康飲食模式\n• 監測血壓、血糖等健康指標\n• 加入支持團體或尋求專業協助\n• 設定實際可行的減重目標';
+                indicatorPosition = Math.min(75 + ((bmi - 27) / 10) * 25, 95);
+            }
+            
+            // 根據性別和年齡調整建議
+            if (gender === 'female' && age > 50) {
+                advice += '\n\n針對您的情況，還建議注意骨質密度和補充鈣質。';
+            } else if (gender === 'male' && age > 40) {
+                advice += '\n\n針對您的情況，建議定期檢查心血管健康。';
+            }
+            
+            if (age < 18) {
+                advice = '注意：BMI標準主要適用於成年人。青少年應諮詢醫生了解適合的體重範圍。\n\n' + advice;
+            } else if (age > 65) {
+                advice += '\n\n年長者的理想BMI範圍可能略高，請諮詢醫生獲得個人化建議。';
+            }
+            
+            document.getElementById('bmiCategory').textContent = category;
+            document.getElementById('bmiCategory').className = 'bmi-category ' + categoryClass;
+            document.getElementById('adviceText').textContent = advice;
+            document.getElementById('adviceText').style.whiteSpace = 'pre-line';
+            
+            // 設定指示器位置
+            document.getElementById('bmiIndicator').style.left = indicatorPosition + '%';
+            
+            // 儲存到歷史記錄
+            const now = new Date();
+            const record = {
+                date: now.toLocaleDateString('zh-TW'),
+                time: now.toLocaleTimeString('zh-TW'),
+                bmi: bmiRounded,
+                category: category,
+                height: height,
+                weight: weight,
+                age: age,
+                gender: gender === 'male' ? '男' : '女'
+            };
+            
+            bmiHistory.unshift(record);
+            if (bmiHistory.length > 10) {
+                bmiHistory = bmiHistory.slice(0, 10);
+            }
+            
+            localStorage.setItem('bmiHistory', JSON.stringify(bmiHistory));
+            updateHistoryDisplay();
+            
+            // 平滑滾動到結果
+            document.getElementById('resultContainer').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest' 
+            });
+        }
+        
+        function updateHistoryDisplay() {
+            if (bmiHistory.length === 0) {
+                document.getElementById('history').classList.remove('show');
+                return;
+            }
+            
+            document.getElementById('history').classList.add('show');
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            bmiHistory.forEach(record => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                
+                let categoryClass = '';
+                if (record.bmi < 18.5) categoryClass = 'underweight';
+                else if (record.bmi < 24) categoryClass = 'normal';
+                else if (record.bmi < 27) categoryClass = 'overweight';
+                else categoryClass = 'obese';
+                
+                item.innerHTML = `
+                    <div>
+                        <strong class="${categoryClass}">BMI ${record.bmi}</strong>
+                        <span style="color: #666; margin-left: 10px;">${record.category}</span>
+                        <div class="history-date">${record.date} ${record.time}</div>
+                    </div>
+                    <div style="text-align: right; font-size: 0.9em; color: #888;">
+                        ${record.gender} ${record.age}歲<br>
+                        ${record.height}cm / ${record.weight}kg
+                    </div>
+                `;
+                historyList.appendChild(item);
+            });
+        }
+        
+        function clearHistory() {
+            if (confirm('確定要清除所有歷史記錄嗎？')) {
+                bmiHistory = [];
+                localStorage.removeItem('bmiHistory');
+                document.getElementById('history').classList.remove('show');
+            }
+        }
+        
+        // Enter鍵觸發計算
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateBMI();
+            }
+        });
+    </script>
 </body>
 </html>
